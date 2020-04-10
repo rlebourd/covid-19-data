@@ -103,6 +103,7 @@ class CovidDBManager:
       
       file.seek(file_ptr) # discard header line in csv file
       line = file.readline()
+      line = file.readline()
       while line:
         file_ptr = file.tell()
 
@@ -113,7 +114,6 @@ class CovidDBManager:
         fips     = fields[3].strip().upper()
         cases    = fields[4].strip().upper()
         deaths   = fields[5].strip().upper()
-        
         if fips == '':
           fips = "NULL"
         
@@ -136,13 +136,13 @@ class CovidDBManager:
         results = cursor.execute(f"""SELECT county_id, county_fips FROM county WHERE state LIKE "{state}" AND county_name LIKE "{name}" """)
         if results > 0:
           # check if the fips is null or not
-          id_fips = cursor.fetchone()[0]
+          id_fips = cursor.fetchone()
           id = id_fips[0]
           fips = id_fips[1]
           if fips == "NULL":
-            cursor.execute(f"""UPDATE TABLE county SET county_fips = {fips}, file_ptr = {file_ptr} WHERE county_id = {id} """)
+            cursor.execute(f"""UPDATE county SET county_fips = {fips}, file_ptr = {file_ptr} WHERE county_id = {id} """)
           else:
-            cursor.execute(f"""UPDATE TABLE county SET file_ptr = {file_ptr} WHERE county_id = {id} """)
+            cursor.execute(f"""UPDATE county SET file_ptr = {file_ptr} WHERE county_id = {id} """)
         else:
           sql = f"""
                   INSERT INTO county (county_fips, county_name, state, file_ptr)
@@ -160,6 +160,7 @@ class CovidDBManager:
         county_id = cursor.fetchone()[0]
         
         for record in covid_records:
+          print(name, state, fips, record)
           date = record[0]
           cases = record[1]
           deaths = record[2]
